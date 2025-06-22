@@ -90,7 +90,7 @@ class MultiURLBrowser:
                         # Pass the API key as an environment variable to the npx process.
                         # This is how the FireCrawl MCP server expects to receive the key.
                         env={
-                            "FIRECRAWL_API_KEY": "fc-e6aad8663d2c432facc1d20db42f76df" # Replace with actual key or env var
+                            "FIRECRAWL_API_KEY": "-----" # Replace with actual key or env var
                         }
                     ),
                     # You can filter for specific tools within the toolset if needed.

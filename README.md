@@ -1,138 +1,78 @@
-# 🤖 TellTimeAgent & Multi-Agent Demo – A2A with Google ADK
+# 🔍 Search Agent – A2A with Google ADK
 
-Welcome to **TellTimeAgent** and the **Multi-Agent** demo — a minimal Agent2Agent (A2A) implementation using Google's [Agent Development Kit (ADK)](https://github.com/google/agent-development-kit).
+This repository contains a demo of a Search Agent built with Google's Agent Development Kit (ADK), showcasing Agent2Agent (A2A) and Multi-Component Protocol (MCP) integration. The Search Agent is capable of scraping content from specified URLs.
 
-This example demonstrates how to build, serve, and interact with three A2A agents:
-1. **TellTimeAgent** – replies with the current time.
-2. **GreetingAgent** – fetches the time and generates a poetic greeting.
-3. **OrchestratorAgent** – routes requests to the appropriate child agent.
-
-All of them work together seamlessly via A2A discovery and JSON-RPC.
+This example demonstrates how to build, serve, and interact with a Search Agent capable of scraping content from specified URLs.
 
 ---
 
 ## 📦 Project Structure
 
+This agent is located within the `agents/search_agent/` directory.
+
 ```bash
-version_3_multi_agent/
-├── .env                         # Your GOOGLE_API_KEY (not committed)
-├── pyproject.toml              # Dependency config
-├── README.md                   # You are reading it!
-├── app/
-│   └── cmd/
-│       └── cmd.py              # CLI to interact with the OrchestratorAgent
-├── agents/
-│   ├── tell_time_agent/
-│   │   ├── __main__.py         # Starts TellTimeAgent server
-│   │   ├── agent.py            # Gemini-based time agent
-│   │   └── task_manager.py     # In-memory task handler for TellTimeAgent
-│   ├── greeting_agent/
-│   │   ├── __main__.py         # Starts GreetingAgent server
-│   │   ├── agent.py            # Orchestrator that calls TellTimeAgent + LLM greeting
-│   │   └── task_manager.py     # Task handler for GreetingAgent
-│   └── host_agent/
-│       ├── entry.py            # CLI to start OrchestratorAgent server
-│       ├── orchestrator.py     # LLM router + TaskManager for OrchestratorAgent
-│       └── agent_connect.py    # Helper to call child A2A agents
-├── server/
-│   ├── server.py               # A2A JSON-RPC server implementation
-│   └── task_manager.py         # Base in-memory task manager interface
-└── utilities/
-    ├── discovery.py            # Finds agents via `agent_registry.json`
-    └── agent_registry.json     # List of child-agent URLs (one per line)
+agents/
+└── search_agent/
+    ├── __main__.py         # Starts the Search Agent server
+    ├── agent.py            # Gemini-based search agent logic
+    ├── client.py           # Test client to interact with the agent
+    └── task_manager.py     # In-memory task handler for the Search Agent
 ```
 
 ---
 
 ## 🛠️ Setup
 
-1. **Clone & navigate**
+This project likely shares setup steps with the main A2A demo. Please refer to the main `README.md` for detailed instructions on setting up the Python environment and installing dependencies.
 
-    ```bash
-    git clone https://github.com/theailanguage/a2a_samples.git
-    cd a2a_samples/version_3_multi_agent
-    ```
+You will also need to set up the necessary API keys in a `.env` file at the project root. If you don't have one, create it and add the following lines:
 
-2. **Create & activate a venv**
+```bash
+GOOGLE_API_KEY=------
+FIRECRAWL_API_KEY=------
+```
 
-    ```bash
-    python3 -m venv .venv
-    source .venv/bin/activate
-    ```
-
-3. **Install dependencies**
-
-    Using [`uv`](https://github.com/astral-sh/uv):
-
-    ```bash
-    uv pip install .
-    ```
-
-    Or with pip directly:
-
-    ```bash
-    pip install .
-    ```
-
-4. **Set your API key**
-
-    Create `.env` at the project root:
-    ```bash
-    echo "GOOGLE_API_KEY=your_api_key_here" > .env
-    ```
+Ensure these keys are kept confidential and are not committed to version control. Replace `-----` and `----` with your actual keys.
 
 ---
 
 ## 🎬 Demo Walkthrough
 
-**Start the TellTimeAgent**
-```bash
-python3 -m agents.tell_time_agent \
-  --host localhost --port 10000
-```
+Follow these steps to run and test the Search Agent:
 
-**Start the GreetingAgent**
-```bash
-python3 -m agents.greeting_agent \
-  --host localhost --port 10001
-```
+1.  **Start the Search Agent Server**
 
-**Start the Orchestrator (Host) Agent**
-```bash
-python3 -m agents.host_agent.entry \
-  --host localhost --port 10002
-```
+    Open a terminal and run the following command from the project root directory:
 
-**Launch the CLI (cmd.py)**
-```bash
-python3 -m app.cmd.cmd --agent http://localhost:10002
-```
+    ```bash
+    python3 -m agents.search_agent --host localhost --port 10000
+    ```
 
-**Try it out!**
-```bash
-> What time is it?
-Agent says: The current time is: 2025-05-05 14:23:10
+    This will start the agent server, listening on `localhost` at port `10000`.
 
-> Greet me
-Agent says: Good afternoon, friend! The golden sun dips low...
-```
+2.  **Test using the Test Client**
 
----
+    Open a **new** terminal window (keep the server running in the first one) and run the client script:
 
-## 🔍 How It Works
+    ```bash
+    python3 agents/search_agent/client.py
+    ```
 
-1. **Discovery**: OrchestratorAgent reads `utilities/agent_registry.json`, fetches each agent’s `/​.well-known/agent.json`.
-2. **Routing**: Based on intent, the Orchestrator’s LLM calls its tools:
-   - `list_agents()` → lists child-agent names
-   - `delegate_task(agent_name, message)` → forwards tasks
-3. **Child Agents**:
-   - TellTimeAgent returns the current time.
-   - GreetingAgent calls TellTimeAgent then crafts a poetic greeting.
-4. **JSON-RPC**: All communication uses A2A JSON-RPC 2.0 over HTTP via Starlette & Uvicorn.
+    This script is configured to connect to `http://localhost:10000` by default and send a predefined query to the agent. You should see output in both the server terminal (indicating it received a request) and the client terminal (showing the agent's response).
+
+    *Note: The client script currently attempts to connect to port 10000. If your server is running on a different port (like the default 10002 as instructed above), you may need to update the `base_url` variable in `agents/search_agent/client.py` to match the server's port for the client to connect successfully.*
+
+3.  **Interacting via ADK Web**
+
+    Once the Search Agent server is running (Step 1), you can also interact with it using the Google ADK web interface. This provides a graphical way to discover and communicate with your running agents.
+
+    If your ADK web interface is configured to discover local agents, the Search Agent should automatically appear. You can then send queries to it directly from the web interface and observe the responses.
+
+    Refer to the official [Google ADK documentation](https://github.com/google/agent-development-kit) for detailed instructions on setting up and using the ADK web interface.
 
 ---
 
 ## 📖 Learn More
 
-- A2A GitHub: https://github.com/google/A2A  
-- Google ADK: https://github.com/google/agent-development-kit
+-   A2A GitHub: https://github.com/google/A2A
+-   Google ADK: https://github.com/google/agent-development-kit

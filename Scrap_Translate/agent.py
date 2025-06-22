@@ -1,4 +1,4 @@
-from models.task import Task
+# agent.py
 from a2a.client import A2AClient
 import logging
 from uuid import uuid4
@@ -158,7 +158,7 @@ async def main():
         print(f"Agent Response:\n{response_text}")
     else:
         print("No response received.")
-    """
+
     user_id = "test_user"  # Use a different user_id for the main execution example
     session_id = "test_session_123"
     query = "List the available agents."  # Example query for the orchestrator.

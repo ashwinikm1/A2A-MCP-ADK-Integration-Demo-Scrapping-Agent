@@ -1,5 +1,5 @@
 # agent.py
-from a2a.client import A2AClient
+from a2a.client import A2AClient, A2ACardResolver
 import logging
 from uuid import uuid4
 from google.adk.tools.function_tool import FunctionTool
@@ -27,7 +27,6 @@ from a2a.types import (
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-
 AGENT_REGISTRY_BASE_URL = "http://localhost:10000"
 
 # Extracted list_agents function
@@ -38,13 +37,46 @@ async def list_agents() -> list[dict]:
     Fetch all AgentCard metadata from the registry,
     return as a list of plain dicts.
     """
-    async with httpx.AsyncClient() as client:
-        url = AGENT_REGISTRY_BASE_URL.rstrip("/") + "/.well-known/agent.json"
-        response = await client.get(url, timeout=50.0)
-    cards_data = response.json()
-    print(f"Fetched {len(cards_data)} agents from registry at {url}")
-    print(f"Agent data: {cards_data}")
-    return cards_data
+    async with httpx.AsyncClient() as httpx_client:
+        base_url = AGENT_REGISTRY_BASE_URL.rstrip("/")
+        # response = await client.get(url, timeout=50.0)
+
+        logger.info("Initializing A2ACardResolver to fetch agent capabilities.")
+        resolver = A2ACardResolver(
+            httpx_client=httpx_client,
+            base_url=base_url,
+            # agent_card_path and extended_agent_card_path use defaults if not specified
+        )
+        final_agent_card_to_use: AgentCard | None = None
+
+        try:
+            logger.info(
+                f"Attempting to fetch public agent card from: {base_url}"
+            )
+            # Fetches the AgentCard from the standard public path.
+            public_card = await resolver.get_agent_card()
+            logger.info("Successfully fetched public agent card:")
+            logger.info(
+                public_card.model_dump_json(indent=2, exclude_none=True)
+            )
+            final_agent_card_to_use = public_card
+            logger.info(
+                "Using PUBLIC agent card for A2AClient initialization.")
+
+        except Exception as e:
+            logger.error(
+                f"Critical error fetching public agent card from {base_url}: {e}",
+                exc_info=True  # This prints the full traceback, very helpful for debugging
+            )
+            raise RuntimeError(
+                "Failed to fetch the public agent card. Cannot continue."
+            ) from e
+
+        cards_data = final_agent_card_to_use
+        # Assuming AgentCard has a 'name' attribute, print the name instead of length
+        print(f"Fetched agent '{cards_data.name}' from registry at {base_url}")
+        print(f"Agent data: {cards_data}")
+        return cards_data
 
 # Extracted call_agent function
 
@@ -57,7 +89,7 @@ async def call_agent(agent_name: str, message: str) -> str:
     cards = await list_agents()  # Use the module-level list_agents
 
     client = A2AClient(httpx_client=httpx.AsyncClient(timeout=3000),
-                       url=AGENT_REGISTRY_BASE_URL)
+                       agent_card=cards)
 
     print("Connected to A2AClient at", AGENT_REGISTRY_BASE_URL)
     session_id = "transalation_session"

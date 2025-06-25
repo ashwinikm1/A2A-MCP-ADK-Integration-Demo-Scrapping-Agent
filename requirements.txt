@@ -1,17 +1,31 @@
-asyncclick>=8.1.8
-click>=8.1.8
-fastapi>=0.115.12
-google-adk>=1.0.0
-google-genai>=1.11.0
-httpx>=0.28.1
-httpx-sse>=0.4.0
-pydantic>=2.11.4
-python-dotenv>=1.1.0
-starlette>=0.46.2
-uvicorn>=0.34.2
+# Core A2A and Agent SDK packages
+a2a-sdk==0.2.9
+google-adk==1.1.1
+google-genai==1.21.1
+mcp==1.5.0
+
+# Web framework and server
+fastapi==0.115.13
+starlette==0.46.2
+uvicorn==0.34.3
+sse-starlette==2.3.6
+
+# HTTP clients and async utilities
+httpx==0.28.1
+httpx-sse==0.4.1
+asyncclick==8.1.8.0
+click==8.2.1
+requests==2.32.3
+
+# Data validation and configuration
+pydantic==2.11.7
+pydantic-core==2.33.2
+pydantic-settings==2.10.1
+python-dotenv==1.1.1
+
+# Web scraping and parsing
 beautifulsoup4==4.12.3
 html2text==2024.2.26
-mcp[cli]==1.5.0
-requests==2.32.3
+
+# Utilities
 deprecated
-a2a-sdk

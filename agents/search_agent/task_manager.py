@@ -121,6 +121,9 @@ class AgentTaskManager(AgentExecutor):
                     await updater.update_status(
                         TaskState.completed, message
                     )
+                    # Small delay to ensure the message is processed before exiting
+                    import asyncio
+                    await asyncio.sleep(0.1)
                     break # Exit the loop once the task is complete
 
         except Exception as e:

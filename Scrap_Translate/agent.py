@@ -1,4 +1,5 @@
 # agent.py
+import os
 from a2a.client import A2AClient, A2ACardResolver
 import logging
 from uuid import uuid4
@@ -12,22 +13,22 @@ from google.adk.agents.llm_agent import LlmAgent
 import httpx
 from dotenv import load_dotenv
 from a2a.types import (
-    AgentCapabilities,
-    AgentCard,
-    AgentSkill,
+    AgentCard
 )
 
 from a2a.types import (
     AgentCard,
-    MessageSendParams,
     SendMessageRequest,
-    SendStreamingMessageRequest,
 )
 
 load_dotenv()
 logger = logging.getLogger(__name__)
 
-AGENT_REGISTRY_BASE_URL = "http://localhost:10000"
+# Retrieve the Google model name from environment variables with a default fallback.
+model_name = os.getenv("GOOGLE_MODEL_NAME", "gemini-2.5-pro-preview-03-25")
+
+# Retrieve the A2A agent registry base URL from environment variables with a default fallback.
+AGENT_REGISTRY_BASE_URL = os.getenv("AGENT_REGISTRY_BASE_URL", "http://localhost:10000")
 
 # Extracted list_agents function
 
@@ -84,7 +85,7 @@ async def list_agents() -> list[dict]:
 async def call_agent(agent_name: str, message: str) -> str:
     """
     Given an agent_name string and a user message,
-    find that agent’s URL, send the task, and return its reply.
+    find that agent's URL, send the task, and return its reply.
     """
     cards = await list_agents()  # Use the module-level list_agents
 
@@ -138,7 +139,7 @@ system_instr = (
 
 # Create the LlmAgent instance directly
 root_agent = LlmAgent(
-    model="gemini-2.5-pro-preview-03-25",
+    model=model_name,
     name="root_orchestrator",
     description="Discovers and orchestrates other agents",
     instruction=system_instr,
@@ -167,45 +168,13 @@ async def main():
 
     print(f"Running query: '{query}'")
 
-    # Wrap the user’s text in a Gemini Content object
+    # Wrap the user's text in a Gemini Content object
     content = types.Content(
         role="user",
         parts=[types.Part.from_text(text=query)]
     )
 
     last_event = None
-    async for event in runner.run_async(
-        user_id=user_id,
-
-        session_id=session_id,
-        new_message=content
-    ):
-        last_event = event
-        # Optional: print events as they happen
-        # print(f"Event: {event}")
-
-    if last_event and last_event.content and last_event.content.parts:
-        response_text = "\n".join(
-            [p.text for p in last_event.content.parts if p.text])
-        print(f"Agent Response:\n{response_text}")
-    else:
-        print("No response received.")
-
-    user_id = "test_user"  # Use a different user_id for the main execution example
-    session_id = "test_session_123"
-    query = "List the available agents."  # Example query for the orchestrator.
-
-    print(f"Running query: '{query}'")
-
-    # Wrap the user’s text in a Gemini Content object
-    # This prepares the user's query in a format suitable for the LLM.
-    content = types.Content(
-        role="user",
-        parts=[types.Part.from_text(text=query)]
-    )
-
-    last_event = None
-    # Run the agent asynchronously and iterate through the events it generates.
     async for event in runner.run_async(
         user_id=user_id,
         session_id=session_id,
@@ -222,3 +191,8 @@ async def main():
         print(f"Agent Response:\n{response_text}")
     else:
         print("No response received.")
+
+
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(main())

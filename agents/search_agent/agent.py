@@ -86,9 +86,12 @@ class MultiURLBrowser:
         firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY")
         if not firecrawl_api_key:
             raise ValueError("FIRECRAWL_API_KEY environment variable not set. Please set it in your .env file.")
+        
+        # Retrieve the Google model name from environment variables with a default fallback.
+        model_name = os.getenv("GOOGLE_MODEL_NAME", "gemini-2.5-pro-preview-03-25")
 
         return LlmAgent(
-            model="gemini-2.5-pro-preview-03-25", # Specifies the Gemini model version to use.
+            model=model_name, # Specifies the Gemini model version to use (from environment variable).
             name="MultiURLBrowserAgent",          # A descriptive name for the agent.
             description="Assists users by intelligently crawling and extracting information from multiple specified URLs.",
             instruction="You are an expert web crawler. Your primary task is to extract content from URLs provided by the user. Use the available tools to fetch content from the web. Respond with the extracted content or a summary as requested.", # System prompt guiding the agent's behavior.
@@ -101,7 +104,7 @@ class MultiURLBrowser:
                         # Pass the API key as an environment variable to the npx process.
                         # This is how the FireCrawl MCP server expects to receive the key.
                         env={
-                            "FIRECRAWL_API_KEY": "fc-e6aad8663d2c432facc1d20db42f76df"
+                            "FIRECRAWL_API_KEY": firecrawl_api_key
                         }
                     ),
                     # You can filter for specific tools within the toolset if needed.

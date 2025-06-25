@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 # -----------------------------------------------------------------------------
 @click.command()
 @click.option("--host", default="localhost", help="The host address to bind the server to. Default is 'localhost'.")
-@click.option("--port", default=10002, type=int, help="The port number for the server to listen on. Default is 10002.")
+@click.option("--port", default=10000, type=int, help="The port number for the server to listen on. Default is 10000.")
 def main(host: str, port: int):
     """
     This function initializes and starts the A2A (Agent-to-Agent) server for the

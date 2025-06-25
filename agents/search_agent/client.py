@@ -12,9 +12,14 @@
 # 📦 Essential Imports
 # -----------------------------------------------------------------------------
 import logging         # For logging information and debugging
+import os              # For environment variables
 from typing import Any # For type hints (e.g., dictionary content)
 from uuid import uuid4 # For generating unique IDs
 import httpx           # An asynchronous HTTP client for making requests
+
+# Environment variable loading for configuration
+from dotenv import load_dotenv
+load_dotenv()  # Load variables from .env file
 
 # A2A Client Library components
 from a2a.client import A2ACardResolver, A2AClient
@@ -50,7 +55,8 @@ async def main() -> None:
 
     # The base URL of the A2A agent server we want to connect to.
     # Make sure your agent server (e.g., from the previous code) is running on this address.
-    base_url = 'http://localhost:10000' # Updated to match the previous server's default port
+    # Get from environment variable with fallback to default
+    base_url = os.getenv('AGENT_REGISTRY_BASE_URL', 'http://localhost:10000')
 
     logger.info(f"Starting A2A client interaction with agent at: {base_url}")
 
@@ -105,9 +111,7 @@ async def main() -> None:
         # The content of the message you want to send to the agent.
         # This example uses a query for the MultiURLBrowser agent.
         user_query = (
-            "Scrape the title and first paragraph from this URL: "
-            "https://medium.com/google-cloud/mastering-cross-project-service-account-impersonation-in-google-cloud-265f6f352cf2 "
-            "and also from this URL: https://www.geeksforgeeks.org/introduction-to-web-scraping/"
+            "Scrape the title and first paragraph from this URL: https://medium.com/p/86a1735368e1"
         )
         logger.info(f"Preparing to send message to agent: '{user_query[:70]}...'")
 

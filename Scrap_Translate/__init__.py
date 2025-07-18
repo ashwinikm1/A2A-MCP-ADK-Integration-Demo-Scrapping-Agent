@@ -1,3 +1,3 @@
 # __init__.py
-# This file initializes the Scrap_Translate package and imports the agent module.
+# This file initializes the scrap_translate package and imports the agent module.
 from . import agent

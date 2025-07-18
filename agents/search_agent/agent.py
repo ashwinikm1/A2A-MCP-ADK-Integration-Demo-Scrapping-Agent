@@ -10,35 +10,38 @@
 # -----------------------------------------------------------------------------
 # 📦 Essential Imports
 # -----------------------------------------------------------------------------
+import logging
 import os
-from collections.abc import AsyncIterable # For asynchronous generators
+from collections.abc import AsyncIterable  # For asynchronous generators
 
 # Google ADK (Agent Development Kit) core components
 from google.adk import Runner
 from google.adk.agents import LlmAgent
 from google.adk.artifacts import InMemoryArtifactService
-from google.adk.memory.in_memory_memory_service import InMemoryMemoryService
+from google.adk.memory.memory_bank_service import MemoryBankService
 from google.adk.sessions import InMemorySessionService
-from google.genai import types # For Gemini content types
+from google.genai import types  # For Gemini content types
+
 
 # Tools for the agent to interact with external services
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioServerParameters
 
+
 # Environment variable loading for API keys (crucial for security)
 from dotenv import load_dotenv
-load_dotenv() # Load variables like FIRECRAWL_API_KEY from your .env file
+load_dotenv()  # Load variables like FIRECRAWL_API_KEY from your .env file
 
 # -----------------------------------------------------------------------------
 # 🪵 Logging Setup
 # Configure logging to display information and errors in the console.
 # -----------------------------------------------------------------------------
-import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # -----------------------------------------------------------------------------
 # 🧠 MultiURLBrowser: Your AI Agent for Web Scraping
 # -----------------------------------------------------------------------------
+
 
 class MultiURLBrowser:
     """
@@ -67,9 +70,12 @@ class MultiURLBrowser:
         self._runner = Runner(
             app_name=self._agent.name,
             agent=self._agent,
-            artifact_service=InMemoryArtifactService(), # Used for file-like data (not directly in this example)
-            session_service=InMemorySessionService(),    # Manages conversational state between interactions.
-            memory_service=InMemoryMemoryService(),      # Stores past messages for contextual understanding.
+            # Used for file-like data (not directly in this example)
+            artifact_service=InMemoryArtifactService(),
+            # Manages conversational state between interactions.
+            session_service=InMemorySessionService(),
+            # Stores past messages for contextual understanding.
+            memory_service=MemoryBankService(),
         )
 
     def _build_agent(self) -> LlmAgent:
@@ -81,27 +87,37 @@ class MultiURLBrowser:
         Returns:
             LlmAgent: An initialized agent object from Google's ADK.
         """
-        # Retrieve the Firecrawl API key from environment variables.
-        # It's vital to set FIRECRAWL_API_KEY in your .env file or environment.
+        # Retrieve API keys from environment variables.
+        # These must be set in your environment or a .env file.
         firecrawl_api_key = os.getenv("FIRECRAWL_API_KEY")
+        google_api_key = os.getenv("GOOGLE_API_KEY")
+
         if not firecrawl_api_key:
-            raise ValueError("FIRECRAWL_API_KEY environment variable not set. Please set it in your .env file.")
+            raise ValueError(
+                "FIRECRAWL_API_KEY environment variable not set. Please set it in your .env file.")
+        if not google_api_key:
+            raise ValueError(
+                "GOOGLE_API_KEY environment variable not set. Please set it in your .env file.")
 
         return LlmAgent(
-            model="gemini-2.5-pro-preview-03-25", # Specifies the Gemini model version to use.
-            name="MultiURLBrowserAgent",          # A descriptive name for the agent.
+            # Specifies the Gemini model version to use.
+            model="gemini-2.5-flash-preview-native-audio-dialog",  # "gemini-2.5-pro",
+
+            # A descriptive name for the agent.
+            name="MultiURLBrowserAgent",
             description="Assists users by intelligently crawling and extracting information from multiple specified URLs.",
-            instruction="You are an expert web crawler. Your primary task is to extract content from URLs provided by the user. Use the available tools to fetch content from the web. Respond with the extracted content or a summary as requested.", # System prompt guiding the agent's behavior.
+            # System prompt guiding the agent's behavior.
+            instruction="You are an expert web crawler. Your primary task is to extract content from URLs provided by the user. Use the available tools to fetch content from the web. Respond with the extracted content or a summary as requested.",
             tools=[
-                MCPToolset( # Multi-Component Protocol Toolset for integrating external services.
+
+                MCPToolset(  # Multi-Component Protocol Toolset for integrating external services.
                     connection_params=StdioServerParameters(
                         command='npx',
                         # Arguments to run the FireCrawl MCP tool via npx.
                         args=["-y", "firecrawl-mcp"],
                         # Pass the API key as an environment variable to the npx process.
-                        # This is how the FireCrawl MCP server expects to receive the key.
                         env={
-                            "FIRECRAWL_API_KEY": "fc-e6aad8663d2c432facc1d20db42f76df"
+                            "FIRECRAWL_API_KEY": firecrawl_api_key
                         }
                     ),
                     # You can filter for specific tools within the toolset if needed.
@@ -125,7 +141,9 @@ class MultiURLBrowser:
                   - {'is_task_complete': False, 'updates': str} for progress.
                   - {'is_task_complete': True, 'content': str} for the final result.
         """
-        logger.info(f"Received query for session {session_id}: {query[:100]}...") # Log beginning of query
+        logger.info(
+            # Log beginning of query
+            f"Received query for session {session_id}: {query[:100]}...")
 
         # 1. Attempt to retrieve an existing session to maintain conversation context.
         session = await self._runner.session_service.get_session(
@@ -140,7 +158,8 @@ class MultiURLBrowser:
                 app_name=self._agent.name,
                 user_id=self._user_id,
                 session_id=session_id,
-                state={}, # Optionally, prefill memory or state here for new sessions.
+                # Optionally, prefill memory or state here for new sessions.
+                state={},
             )
             logger.info(f"Created new session {session_id}.")
 
@@ -176,5 +195,3 @@ class MultiURLBrowser:
                     'is_task_complete': False,
                     'updates': "Processing the web crawling request...",
                 }
-                                
- 

@@ -1,0 +1,121 @@
+# ==========================================================================================
+# ||                            .gitignore for Python Projects                           ||
+# ==========================================================================================
+#
+# This file tells Git which files and directories to ignore in your project.
+# It's crucial for keeping your repository clean from generated files,
+# local configurations, and sensitive data.
+#
+# For more details, see the official documentation:
+# https://git-scm.com/docs/gitignore
+#
+# You can find more templates at:
+# https://github.com/github/gitignore
+#
+
+# --- Virtual Environments ---
+# Ignore virtual environment folders. You should share your dependencies
+# in a `requirements.txt` or `pyproject.toml` file instead.
+.venv/
+venv/
+env/
+.env/
+ENV/
+
+# --- Secrets and Credentials ---
+# Ignore environment variable files.
+# It's a best practice to create a `.env.example` file to be committed,
+# which documents the required environment variables.
+.env
+.env.*
+!.env.example
+!.env.template
+
+# Ignore other sensitive files like keys and credentials.
+# The files you provided from `googleapiclient` are discovery documents,
+# not credentials, but it's good practice to ignore credential files.
+*.pem
+*.key
+credentials.json
+# Be cautious with config files, only ignore if they contain secrets.
+# config.py
+# settings.py
+
+# --- Byte-compiled / Optimized / C extensions ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# --- Distribution / Packaging ---
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# --- PyInstaller ---
+# Usually these files are written by a python script from a template
+# before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# --- Installer logs ---
+pip-log.txt
+pip-delete-this-directory.txt
+pip-selfcheck.json
+
+# --- Unit test / Coverage reports ---
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+pytestdebug.log
+
+# --- Jupyter Notebook ---
+.ipynb_checkpoints
+
+# --- IDE / Editor configuration ---
+# VSCode
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# PyCharm
+.idea/
+
+# --- OS-generated files ---
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# --- Logs & Databases ---
+*.log
+logs/
+*.db
+*.sqlite3
